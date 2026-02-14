@@ -1,0 +1,87 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id                      String   @id @default(uuid())
+  email                   String   @unique
+  passwordHash            String   @map("password_hash")
+  name                    String?
+  isEmailVerified         Boolean  @default(false) @map("is_email_verified")
+  emailVerificationToken  String?  @map("email_verification_token")
+  passwordResetToken      String?  @map("password_reset_token")
+  passwordResetExpires    DateTime? @map("password_reset_expires")
+  createdAt               DateTime @default(now()) @map("created_at")
+  updatedAt               DateTime @updatedAt @map("updated_at")
+  
+  predictions             Prediction[]
+
+  @@map("users")
+}
+
+model Team {
+  id          String   @id @default(uuid())
+  name        String   @unique
+  groupName   String?  @map("group_name")
+  flagEmoji   String?  @map("flag_emoji")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+  
+  matchesAsTeam1 Match[] @relation("Team1")
+  matchesAsTeam2 Match[] @relation("Team2")
+
+  @@map("teams")
+}
+
+model Match {
+  id          String   @id @default(uuid())
+  stage       String   // 'group', 'round_of_16', 'quarter_final', 'semi_final', 'final'
+  groupName   String?  @map("group_name")
+  team1Id     String   @map("team1_id")
+  team2Id     String   @map("team2_id")
+  scheduledAt DateTime? @map("scheduled_at")
+  resultTeam1 Int?     @map("result_team1")
+  resultTeam2 Int?     @map("result_team2")
+  status      String   @default("scheduled") // 'scheduled', 'completed'
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+  
+  team1       Team     @relation("Team1", fields: [team1Id], references: [id])
+  team2       Team     @relation("Team2", fields: [team2Id], references: [id])
+  predictions Prediction[]
+
+  @@map("matches")
+}
+
+model Prediction {
+  id          String   @id @default(uuid())
+  userId      String   @map("user_id")
+  matchId     String   @map("match_id")
+  goalsTeam1 Int      @map("goals_team1")
+  goalsTeam2 Int      @map("goals_team2")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+  
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  match       Match    @relation(fields: [matchId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, matchId])
+  @@map("predictions")
+}
+
+model AppSetting {
+  key       String   @id
+  value     String
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("app_settings")
+}
