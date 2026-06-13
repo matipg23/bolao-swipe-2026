@@ -1,4 +1,4 @@
-# Bolão Swipe — Copa do Mundo 2026
+# Bolão Swipe — World Cup 2026
 
 Two apps in one repo: a self-contained swipe-to-predict experience and a multi-user hosted bolão platform.
 
