@@ -1,138 +1,117 @@
-# World Cup 2026 Predictor App
+# Bolão Swipe — Copa do Mundo 2026
 
-A complete web application for managing user participation in a FIFA World Cup 2026 score prediction competition.
+Two apps in one repo: a self-contained swipe-to-predict experience and a multi-user hosted bolão platform.
 
-## Features
+---
 
-- ✅ User registration and authentication with email/password
-- ✅ Email verification system
-- ✅ Password reset functionality
-- ✅ Score prediction submission for group stage matches (72 matches)
-- ✅ Deadline enforcement (June 6, 2026) - editing disabled after deadline
-- ✅ Visibility rules - view all predictions after deadline
-- ✅ Real-time dashboard statistics
-- ✅ Automatic qualification calculation (points, goal difference, goals scored)
-- ✅ Knockout match generation (Round of 16, Quarterfinals, Semifinals, Final)
-- ✅ Group standings display
-- ✅ Countdown timer to deadline
+## Apps in this repo
 
-## Technology Stack
+### 1. `bolao-de-bico/` — Swipe Predictor (standalone)
 
-- **Framework**: Next.js 14+ (App Router) with TypeScript
-- **Database**: SQLite with Prisma ORM
-- **Authentication**: JWT with HTTP-only cookies
-- **Styling**: Tailwind CSS
-- **Email**: Nodemailer (configurable for production services)
+A single-page app where you swipe cards to pick winners for all 72 group-stage matches and the full knockout bracket. Runs entirely in the browser with no backend.
 
-## Getting Started
+**Features:**
+- 12 groups × 6 matches — swipe left/right to pick winner, tap VS for draw
+- Auto-generated scores based on FIFA ratings (realistic, weighted randomness)
+- Editable scores — tap any score chip to adjust goals manually
+- Full FIFA 2026 knockout bracket (Round of 32 → R16 → QF → SF → 3rd place → Final)
+- Spider bracket preview before each knockout round
+- Print-ready bracket chart (full-page layout, print from browser)
+- Share modal — generates a text summary of your predictions to copy/paste
+- JSON export (`</>` button) — exports your full prediction state
+- Onboarding screens with interactive demos
+- Champion reveal with confetti
 
-### Prerequisites
+**How to run:**
 
-- Node.js 18+ and npm/yarn
-- Email service configuration (for production)
-
-### Installation
-
-1. Clone the repository
-2. Install dependencies:
 ```bash
+cd bolao-de-bico
 npm install
-```
-
-3. Set up environment variables:
-```bash
-cp .env.example .env
-```
-
-Edit `.env` and configure:
-- `DATABASE_URL` - SQLite database path (default: `file:./dev.db`)
-- `JWT_SECRET` - Random secret key for JWT tokens
-- Email settings (SMTP or use Resend/SendGrid for production)
-
-4. Initialize the database:
-```bash
-npx prisma generate
-npx prisma db push
-npm run db:seed
-```
-
-5. Start the development server:
-```bash
 npm run dev
 ```
 
-The application will be available at `http://localhost:3000`
+Open `http://localhost:5173`
 
-## Database Management
+> The `worldcup2026.jsx` file in this folder is the English version of the same app. Drop it into any Vite React project or paste it into the Claude.ai artifact renderer to run it standalone.
 
-- View database: `npm run db:studio`
-- Reset database: Delete `prisma/dev.db` and run `npm run db:push` and `npm run db:seed`
+---
 
-## Project Structure
+### 2. Root — Multi-user Bolão Platform (Next.js)
+
+A hosted platform where multiple participants each submit their own score predictions and compete. Predictions are locked after the deadline; after that, everyone can see each other's picks.
+
+**Features:**
+- User registration and login with email/password
+- Email verification and password reset
+- Score prediction submission for all 72 group-stage matches
+- Deadline enforcement (June 6, 2026) — editing disabled after deadline
+- After deadline: all predictions visible to all users
+- Dashboard with live stats (total users, predictions completed)
+- Group standings and qualification calculation
+- Knockout bracket generation (R16, QF, SF, Final)
+- Countdown timer to deadline
+
+**How to run:**
+
+```bash
+npm install
+npx prisma generate
+npx prisma db push
+npm run db:seed
+npm run dev
+```
+
+Open `http://localhost:3000`
+
+**Environment variables needed:**
 
 ```
-├── app/
-│   ├── api/              # API routes
-│   ├── predictions/      # Prediction pages
-│   ├── register/         # Registration page
-│   ├── login/            # Login page
-│   └── ...
-├── components/           # React components
-├── lib/                  # Utility functions
-├── prisma/               # Database schema and seed
-└── middleware.ts         # Authentication middleware
+DATABASE_URL=file:./prisma/dev.db
+JWT_SECRET=your-random-secret
+# Email (optional for local dev, required for production):
+SMTP_HOST=
+SMTP_PORT=
+SMTP_USER=
+SMTP_PASS=
 ```
 
-## API Endpoints
+---
 
-### Authentication
-- `POST /api/register` - Register new user
-- `POST /api/login` - Login user
-- `GET /api/verify-email` - Verify email with token
-- `POST /api/forgot-password` - Request password reset
-- `POST /api/reset-password` - Reset password with token
+## How the two apps relate
 
-### Predictions
-- `GET /api/predictions` - Get predictions (own or all after deadline)
-- `POST /api/predictions` - Create/update prediction
-- `PUT /api/predictions` - Update prediction
-- `GET /api/predictions/[matchId]` - Get prediction for specific match
+The swipe app (`bolao-de-bico/`) is used to **generate your predictions** — you swipe through all the matches and it simulates the scores. Once done, you can:
 
-### Matches
-- `GET /api/matches` - List matches (filterable by stage/group)
-- `POST /api/matches` - Create match (admin)
+- Print your bracket chart
+- Copy a text summary via the **Share** button to paste into external bolão apps (such as [Bolão do Copão](https://bolaodocopao.base44.app/))
+- Export a JSON file for record-keeping or integration
 
-### Dashboard
-- `GET /api/dashboard/stats` - Get statistics (total users, completed predictions)
+The multi-user Next.js app is for **hosting a bolão** where friends each submit their own independent predictions.
 
-### Qualification
-- `GET /api/qualification` - Get group standings and qualified teams
-- `POST /api/qualification` - Calculate qualifications
+---
 
-### Knockout
-- `POST /api/knockout/generate` - Generate knockout matches
-- `PUT /api/knockout/generate` - Generate next round
+## Tech stack
 
-### Settings
-- `GET /api/settings` - Get app settings (deadline, etc.)
+| App | Framework | Styling | Backend |
+|-----|-----------|---------|---------|
+| `bolao-de-bico/` | React 18 + Vite | CSS-in-JS (inline) | None |
+| Root (Next.js) | Next.js 14 + TypeScript | Tailwind CSS | Prisma + SQLite + JWT |
 
-## Important Notes
+---
 
-1. **Round of 16 Format**: The plan specifies "top 2 teams from each group qualify for Round of 16", but 12 groups × 2 = 24 teams. The implementation calculates top 2 per group (24 teams total) and creates matches accordingly.
+## Project structure
 
-2. **Email Configuration**: For development, you can use Gmail SMTP or a service like Mailtrap. For production, consider Resend (3,000 emails/month free) or SendGrid (100 emails/day free).
+```
+bolao-swipe-2026/
+├── bolao-de-bico/        ← Standalone Vite swipe app (Portuguese)
+│   ├── src/App.jsx       ← Entire app in one file
+│   └── worldcup2026.jsx  ← English version (single-file, Claude.ai compatible)
+├── app/                  ← Next.js pages and API routes
+├── components/           ← Shared React components
+├── lib/                  ← Auth, DB, email, utilities
+├── prisma/               ← Database schema and seed data
+└── middleware.ts         ← JWT auth middleware
+```
 
-3. **Deadline**: The hard deadline is June 6, 2026, 00:00:00 UTC. All editing is disabled after this date.
+---
 
-4. **Visibility**: Before the deadline, users can only see their own predictions. After the deadline, all predictions become visible to everyone.
-
-## Development
-
-- Run development server: `npm run dev`
-- Build for production: `npm run build`
-- Start production server: `npm start`
-- Lint code: `npm run lint`
-
-## License
-
-This project is for educational/demonstration purposes.
+*Built for family fun — no monetary prizes, no gambling mechanics.*
